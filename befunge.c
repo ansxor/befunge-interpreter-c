@@ -9,6 +9,8 @@
 // use bfinit() to initialize
 // use bfload() to load a char array into the source code memory
 // use bfsync() to run through a single instruction of the interpreter
+// use bfgetsource() to get a text formatted version of the source code
+// use bfgetpos(int *x, int *y) to get the current position int the program
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -25,39 +27,42 @@ typedef enum {up, down, left, right} direction;
 
 // external functions to be used by the main program
 int bfinit();
+int bfload(const char * source);
 int bfsync();
+char * bfgetsource();
+void bfgetpos(int * x, int * y);
 
 // for interpreting befunge
-bool interpretProgram();
-void updatePosition();
+static int interpretProgram();
+static void updatePosition();
 
 // for managing the stack
-void refresh();
-unsigned int pop();
-void push();
+static void refresh();
+static unsigned int pop();
+static void push();
 
 // constants for the maximum program width and height
-const int PROGRAM_WIDTH = 80;
-const int PROGRAM_HEIGHT = 25;
+static const int PROGRAM_WIDTH = 80;
+static const int PROGRAM_HEIGHT = 25;
 
 // is the source code loaded?
-bool programCanBeRun = false;
+static bool programCanBeRun = false;
 
 // is string mode enabled?
-bool stringMode = false;
+static bool stringMode = false;
 
 // bridge for position updating
-unsigned int bridge = 1;
+static unsigned int bridge = 1;
 
 // position in the source code
-unsigned int codePosX = 0;
-unsigned int codePosY = 0;
-direction dir = right;
+static int codePosX = 0;
+static int codePosY = 0;
+static direction dir = right;
 
 // the source code and stack
-char sourceCode[80][25];
-unsigned int stackSize = 0;
-unsigned int *stack;
+static char sourceCode[80][25];
+static unsigned int stackSize = 0;
+static unsigned int *stack;
 
 // initialize befunge in main program
 int bfinit() {
@@ -86,9 +91,44 @@ int bfsync() {
   
 }
 
+// load a character string into the source code
+int bfload(const char * source) {
+  
+  for (int j = 0; j < PROGRAM_HEIGHT; j++) {
+    for (int i = 0; i < PROGRAM_WIDTH; i++) {
+      sourceCode[i][j] = source[j*PROGRAM_WIDTH + i];
+    }
+  }
+  programCanBeRun = true;
+
+  return 1;
+}
+
+// get the source code formatted for text
+char *bfgetsource() {
+  char *source[PROGRAM_WIDTH * PROGRAM_HEIGHT];
+
+  for (int j = 0; j < PROGRAM_HEIGHT; j++) {
+    for (int i = 0; i < PROGRAM_WIDTH; i++) {
+      source[j*PROGRAM_WIDTH + i] = &sourceCode[i][j];
+    }
+  }
+
+  return &source;
+}
+
+void bfgetpos(int *x, int *y) {
+
+  x = &codePosX;
+  y = &codePosY;
+  
+  return;
+}
+
 // interpret the program
-bool interpretProgram() {
-  bool success = true;
+static int interpretProgram() {
+  
+  int success = 1;
 
   unsigned int x = codePosX; unsigned int y = codePosY;
 
@@ -97,21 +137,21 @@ bool interpretProgram() {
     if (stringMode == false)
       stringMode = true; else
       stringMode = false;
-    return true;
+    return 1;
   }
 
   // if in string mode, push current character
   if (stringMode == true) {
     push(sourceCode[x][y]);
-    return true;
+    return 1;
   }
 
   // check if number, if so, push number
   if (('0' <= sourceCode[x][y]) && (sourceCode[x][y] <= '9')) {
     push(sourceCode[x][y] - '0');
-    return true;
+    return 1;
   }
-
+  
   // run through all possible commands
   unsigned int a = 0; unsigned b = 0; unsigned int c = 0;
   switch (sourceCode[x][y]) {
@@ -190,6 +230,7 @@ bool interpretProgram() {
   case',':
     pop1(a);
     printf("%c", a);
+    break;
   case'#':
     bridge = 2;
     break;
@@ -203,11 +244,12 @@ bool interpretProgram() {
     break;
   // #TODO add input functions, & and ~
   case'@':
-    return false;
+    codePosX = 0; codePosY = 0;
+    return 0;
     break;
   default:
     programCanBeRun = false;
-    return false;
+    return 0;
     break;
   }
   
@@ -215,12 +257,12 @@ bool interpretProgram() {
 }
 
 // refresh stack using realloc()
-void refresh() {
+static void refresh() {
   stack = realloc(stack, sizeof(unsigned int) * stackSize);
 }
 
 // update the position of the pointer
-void updatePosition() {
+static void updatePosition() {
   switch (dir) {
   case (up):
     codePosY -= bridge;
@@ -255,7 +297,7 @@ void updatePosition() {
 }
 
 // pop value from stack
-unsigned int pop() {
+static unsigned int pop() {
 
   unsigned int ret = 0;
 
@@ -269,7 +311,7 @@ unsigned int pop() {
 }
 
 // push value onto stack
-void push(unsigned int value) {
+static void push(unsigned int value) {
   
   stackSize++;
 
