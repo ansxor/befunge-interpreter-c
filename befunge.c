@@ -62,7 +62,7 @@ static direction dir = right;
 // the source code and stack
 static char sourceCode[80][25];
 static unsigned int stackSize = 0;
-static unsigned int *stack;
+static int *stack;
 
 // initialize befunge in main program
 int bfinit() {
@@ -258,7 +258,7 @@ static int interpretProgram() {
 
 // refresh stack using realloc()
 static void refresh() {
-  stack = realloc(stack, sizeof(unsigned int) * stackSize);
+  stack = realloc(stack, sizeof(int) * stackSize);
 }
 
 // update the position of the pointer
