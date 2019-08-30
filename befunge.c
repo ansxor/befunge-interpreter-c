@@ -38,7 +38,7 @@ static void updatePosition();
 
 // for managing the stack
 static void refresh();
-static unsigned int pop();
+static int pop();
 static void push();
 
 // constants for the maximum program width and height
@@ -52,7 +52,7 @@ static bool programCanBeRun = false;
 static bool stringMode = false;
 
 // bridge for position updating
-static unsigned int bridge = 1;
+static int bridge = 1;
 
 // position in the source code
 static int codePosX = 0;
@@ -61,7 +61,7 @@ static direction dir = right;
 
 // the source code and stack
 static char sourceCode[80][25];
-static unsigned int stackSize = 0;
+static int stackSize = 0;
 static int *stack;
 
 // initialize befunge in main program
@@ -153,7 +153,7 @@ static int interpretProgram() {
   }
   
   // run through all possible commands
-  unsigned int a = 0; unsigned b = 0; unsigned int c = 0;
+  int a = 0, b = 0, c = 0;
   switch (sourceCode[x][y]) {
   case' ':case 0:
     break;
@@ -297,9 +297,9 @@ static void updatePosition() {
 }
 
 // pop value from stack
-static unsigned int pop() {
+static int pop() {
 
-  unsigned int ret = 0;
+  int ret = 0;
 
   if (stackSize > 0) {
     ret = stack[--stackSize];
@@ -311,7 +311,7 @@ static unsigned int pop() {
 }
 
 // push value onto stack
-static void push(unsigned int value) {
+static void push(int value) {
   
   stackSize++;
 
